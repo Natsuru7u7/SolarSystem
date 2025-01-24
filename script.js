@@ -1,144 +1,89 @@
-const canvas = document.getElementById("solar-system");
-const ctx = canvas.getContext("2d");
+// Escena, cámara y renderizador
+const scene = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+const renderer = new THREE.WebGLRenderer();
+renderer.setSize(window.innerWidth, window.innerHeight);
+document.body.appendChild(renderer.domElement);
 
-// Variables para la "cámara"
-let cameraX = 0;
-let cameraY = 0;
-let zoom = 1;
+// Texturas
+const textureLoader = new THREE.TextureLoader();
+const sunTexture = textureLoader.load('sun.jpg'); // Textura del Sol
+const earthTexture = textureLoader.load('earth.jpg'); // Textura de la Tierra
+const moonTexture = textureLoader.load('moon.jpg'); // Textura de la Luna
 
-// Parámetros de la órbita
-let earthAngle = 0; // Ángulo actual de la órbita de la Tierra
-let moonAngle = 0; // Ángulo actual de la órbita de la Luna
-let earthRotation = 0; // Rotación de la Tierra sobre su eje
-let moonRotation = 0; // Rotación de la Luna sobre su eje
+// Tamaños y geometrías
+const sunGeometry = new THREE.SphereGeometry(5, 32, 32); // Sol
+const earthGeometry = new THREE.SphereGeometry(2, 32, 32); // Tierra
+const moonGeometry = new THREE.SphereGeometry(0.5, 32, 32); // Luna
 
-// Radio de las órbitas (en píxeles)
-const earthOrbitRadius = 200; // Tierra orbitando al "sol"
-const moonOrbitRadius = 50; // Luna orbitando a la Tierra
+// Materiales
+const sunMaterial = new THREE.MeshBasicMaterial({ map: sunTexture });
+const earthMaterial = new THREE.MeshPhongMaterial({ map: earthTexture });
+const moonMaterial = new THREE.MeshPhongMaterial({ map: moonTexture });
 
-// Velocidades angulares (en radianes por frame)
-const earthOrbitSpeed = 0.01; // Velocidad de la Tierra
-const moonOrbitSpeed = 0.05; // Velocidad de la Luna
-const earthRotationSpeed = 0.02; // Velocidad de rotación de la Tierra
-const moonRotationSpeed = 0.01; // Velocidad de rotación de la Luna
+// Meshes
+const sun = new THREE.Mesh(sunGeometry, sunMaterial);
+scene.add(sun);
 
-// Carga de texturas
-const sunTexture = new Image();
-const earthTexture = new Image();
-const moonTexture = new Image();
-sunTexture.src = "sun.jpg"; // Reemplaza con la URL de tu textura
-earthTexture.src = "earth.jpg"; // Reemplaza con la URL de tu textura
-moonTexture.src = "moon.jpg"; // Reemplaza con la URL de tu textura
+const earth = new THREE.Mesh(earthGeometry, earthMaterial);
+scene.add(earth);
 
-// Dibujar el sistema solar
-function drawSystem() {
-  // Limpia el canvas
-  ctx.resetTransform();
-  ctx.fillStyle = "black";
-  ctx.fillRect(0, 0, canvas.width, canvas.height);
+const moon = new THREE.Mesh(moonGeometry, moonMaterial);
+scene.add(moon);
 
-  // Aplica la transformación de la cámara
-  ctx.translate(canvas.width / 2, canvas.height / 2); // Centra el origen
-  ctx.scale(zoom, zoom); // Aplica el zoom
-  ctx.translate(-cameraX, -cameraY); // Mueve la cámara
+// Luces
+const light = new THREE.PointLight(0xffffff, 1, 100);
+light.position.set(0, 0, 0); // Luz en el Sol
+scene.add(light);
 
-  // Dibuja el "Sol"
-  const sunSize = 100; // Tamaño del Sol
-  ctx.drawImage(sunTexture, -sunSize / 2, -sunSize / 2, sunSize, sunSize);
+const ambientLight = new THREE.AmbientLight(0x404040); // Luz ambiental tenue
+scene.add(ambientLight);
 
-  // Calcula la posición de la Tierra
-  const earthX = earthOrbitRadius * Math.cos(earthAngle);
-  const earthY = earthOrbitRadius * Math.sin(earthAngle);
+// Posición inicial
+earth.position.set(10, 0, 0); // Tierra a 10 unidades del Sol
+moon.position.set(12, 0, 0); // Luna a 2 unidades de la Tierra
 
-  // Dibuja la órbita de la Tierra
-  ctx.strokeStyle = "white";
-  ctx.beginPath();
-  ctx.arc(0, 0, earthOrbitRadius, 0, Math.PI * 2);
-  ctx.stroke();
+// Variables de órbita y rotación
+let earthAngle = 0;
+let moonAngle = 0;
 
-  // Dibuja la Tierra con rotación
-  const earthSize = 40; // Tamaño de la Tierra
-  ctx.save();
-  ctx.translate(earthX, earthY); // Mueve el contexto a la posición de la Tierra
-  ctx.rotate(earthRotation); // Aplica la rotación de la Tierra
-  ctx.drawImage(earthTexture, -earthSize / 2, -earthSize / 2, earthSize, earthSize);
-  ctx.restore();
+// Animación
+function animate() {
+  requestAnimationFrame(animate);
 
-  // Calcula la posición de la Luna (relativa a la Tierra)
-  const moonX = earthX + moonOrbitRadius * Math.cos(moonAngle);
-  const moonY = earthY + moonOrbitRadius * Math.sin(moonAngle);
+  // Rotación sobre el eje
+  sun.rotation.y += 0.001;
+  earth.rotation.y += 0.01;
+  moon.rotation.y += 0.02;
 
-  // Dibuja la órbita de la Luna
-  ctx.strokeStyle = "gray";
-  ctx.beginPath();
-  ctx.arc(earthX, earthY, moonOrbitRadius, 0, Math.PI * 2);
-  ctx.stroke();
+  // Órbitas
+  earthAngle += 0.01; // Orbita de la Tierra alrededor del Sol
+  moonAngle += 0.05; // Orbita de la Luna alrededor de la Tierra
 
-  // Dibuja la Luna con rotación
-  const moonSize = 20; // Tamaño de la Luna
-  ctx.save();
-  ctx.translate(moonX, moonY); // Mueve el contexto a la posición de la Luna
-  ctx.rotate(moonRotation); // Aplica la rotación de la Luna
-  ctx.drawImage(moonTexture, -moonSize / 2, -moonSize / 2, moonSize, moonSize);
-  ctx.restore();
+  earth.position.set(
+    10 * Math.cos(earthAngle),
+    0,
+    10 * Math.sin(earthAngle)
+  );
+
+  moon.position.set(
+    earth.position.x + 2 * Math.cos(moonAngle),
+    0,
+    earth.position.z + 2 * Math.sin(moonAngle)
+  );
+
+  renderer.render(scene, camera);
 }
 
-// Actualiza las posiciones y redibuja el sistema solar
-function update() {
-  // Actualiza los ángulos de la Tierra y la Luna
-  earthAngle += earthOrbitSpeed;
-  moonAngle += moonOrbitSpeed;
+// Posición inicial de la cámara
+camera.position.z = 20;
 
-  // Actualiza las rotaciones
-  earthRotation += earthRotationSpeed;
-  moonRotation += moonRotationSpeed;
-
-  // Redibuja el sistema
-  drawSystem();
-
-  // Llama al siguiente frame
-  requestAnimationFrame(update);
-}
-
-// Maneja el zoom con la rueda del ratón
-canvas.addEventListener("wheel", (event) => {
-  event.preventDefault();
-  const zoomFactor = 0.1; // Incremento o decremento del zoom
-  if (event.deltaY < 0) {
-    zoom += zoomFactor; // Zoom in
-  } else {
-    zoom = Math.max(0.1, zoom - zoomFactor); // Zoom out (límite mínimo)
-  }
+// Control del tamaño del canvas al cambiar ventana
+window.addEventListener("resize", () => {
+  camera.aspect = window.innerWidth / window.innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(window.innerWidth, window.innerHeight);
 });
 
-// Maneja el movimiento de la cámara con clic y arrastre
-let isDragging = false;
-let dragStartX, dragStartY;
-
-canvas.addEventListener("mousedown", (event) => {
-  isDragging = true;
-  dragStartX = event.offsetX;
-  dragStartY = event.offsetY;
-});
-
-canvas.addEventListener("mousemove", (event) => {
-  if (isDragging) {
-    const dx = (event.offsetX - dragStartX) / zoom; // Ajuste según el zoom
-    const dy = (event.offsetY - dragStartY) / zoom;
-    cameraX -= dx;
-    cameraY -= dy;
-    dragStartX = event.offsetX;
-    dragStartY = event.offsetY;
-  }
-});
-
-canvas.addEventListener("mouseup", () => {
-  isDragging = false;
-});
-
-canvas.addEventListener("mouseleave", () => {
-  isDragging = false;
-});
-
-// Inicia la simulación
-update();
+// Inicia la animación
+animate();
