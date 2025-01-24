@@ -9,6 +9,8 @@ let zoom = 1;
 // Parámetros de la órbita
 let earthAngle = 0; // Ángulo actual de la órbita de la Tierra
 let moonAngle = 0; // Ángulo actual de la órbita de la Luna
+let earthRotation = 0; // Rotación de la Tierra sobre su eje
+let moonRotation = 0; // Rotación de la Luna sobre su eje
 
 // Radio de las órbitas (en píxeles)
 const earthOrbitRadius = 200; // Tierra orbitando al "sol"
@@ -17,11 +19,21 @@ const moonOrbitRadius = 50; // Luna orbitando a la Tierra
 // Velocidades angulares (en radianes por frame)
 const earthOrbitSpeed = 0.01; // Velocidad de la Tierra
 const moonOrbitSpeed = 0.05; // Velocidad de la Luna
+const earthRotationSpeed = 0.02; // Velocidad de rotación de la Tierra
+const moonRotationSpeed = 0.01; // Velocidad de rotación de la Luna
+
+// Carga de texturas
+const sunTexture = new Image();
+const earthTexture = new Image();
+const moonTexture = new Image();
+sunTexture.src = "textures/sun.jpg"; // Reemplaza con la URL de tu textura
+earthTexture.src = "textures/earth.jpg"; // Reemplaza con la URL de tu textura
+moonTexture.src = "textures/moon.jpg"; // Reemplaza con la URL de tu textura
 
 // Dibujar el sistema solar
 function drawSystem() {
   // Limpia el canvas
-  ctx.resetTransform(); // Resetea transformaciones previas
+  ctx.resetTransform();
   ctx.fillStyle = "black";
   ctx.fillRect(0, 0, canvas.width, canvas.height);
 
@@ -31,10 +43,8 @@ function drawSystem() {
   ctx.translate(-cameraX, -cameraY); // Mueve la cámara
 
   // Dibuja el "Sol"
-  ctx.fillStyle = "yellow";
-  ctx.beginPath();
-  ctx.arc(0, 0, 50, 0, Math.PI * 2);
-  ctx.fill();
+  const sunSize = 100; // Tamaño del Sol
+  ctx.drawImage(sunTexture, -sunSize / 2, -sunSize / 2, sunSize, sunSize);
 
   // Calcula la posición de la Tierra
   const earthX = earthOrbitRadius * Math.cos(earthAngle);
@@ -46,11 +56,13 @@ function drawSystem() {
   ctx.arc(0, 0, earthOrbitRadius, 0, Math.PI * 2);
   ctx.stroke();
 
-  // Dibuja la Tierra
-  ctx.fillStyle = "blue";
-  ctx.beginPath();
-  ctx.arc(earthX, earthY, 20, 0, Math.PI * 2);
-  ctx.fill();
+  // Dibuja la Tierra con rotación
+  const earthSize = 40; // Tamaño de la Tierra
+  ctx.save();
+  ctx.translate(earthX, earthY); // Mueve el contexto a la posición de la Tierra
+  ctx.rotate(earthRotation); // Aplica la rotación de la Tierra
+  ctx.drawImage(earthTexture, -earthSize / 2, -earthSize / 2, earthSize, earthSize);
+  ctx.restore();
 
   // Calcula la posición de la Luna (relativa a la Tierra)
   const moonX = earthX + moonOrbitRadius * Math.cos(moonAngle);
@@ -62,11 +74,13 @@ function drawSystem() {
   ctx.arc(earthX, earthY, moonOrbitRadius, 0, Math.PI * 2);
   ctx.stroke();
 
-  // Dibuja la Luna
-  ctx.fillStyle = "white";
-  ctx.beginPath();
-  ctx.arc(moonX, moonY, 10, 0, Math.PI * 2);
-  ctx.fill();
+  // Dibuja la Luna con rotación
+  const moonSize = 20; // Tamaño de la Luna
+  ctx.save();
+  ctx.translate(moonX, moonY); // Mueve el contexto a la posición de la Luna
+  ctx.rotate(moonRotation); // Aplica la rotación de la Luna
+  ctx.drawImage(moonTexture, -moonSize / 2, -moonSize / 2, moonSize, moonSize);
+  ctx.restore();
 }
 
 // Actualiza las posiciones y redibuja el sistema solar
@@ -74,6 +88,10 @@ function update() {
   // Actualiza los ángulos de la Tierra y la Luna
   earthAngle += earthOrbitSpeed;
   moonAngle += moonOrbitSpeed;
+
+  // Actualiza las rotaciones
+  earthRotation += earthRotationSpeed;
+  moonRotation += moonRotationSpeed;
 
   // Redibuja el sistema
   drawSystem();
