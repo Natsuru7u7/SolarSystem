@@ -7,9 +7,9 @@ document.body.appendChild(renderer.domElement);
 
 // Texturas
 const textureLoader = new THREE.TextureLoader();
-const sunTexture = textureLoader.load('sun.jpg'); // Textura del Sol
-const earthTexture = textureLoader.load('earth.jpg'); // Textura de la Tierra
-const moonTexture = textureLoader.load('moon.jpg'); // Textura de la Luna
+const sunTexture = textureLoader.load('textures/sun.jpg'); // Textura del Sol
+const earthTexture = textureLoader.load('textures/earth.jpg'); // Textura de la Tierra
+const moonTexture = textureLoader.load('textures/moon.jpg'); // Textura de la Luna
 
 // Tamaños y geometrías
 const sunGeometry = new THREE.SphereGeometry(5, 32, 32); // Sol
