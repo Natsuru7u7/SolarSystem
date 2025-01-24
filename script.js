@@ -26,9 +26,9 @@ const moonRotationSpeed = 0.01; // Velocidad de rotación de la Luna
 const sunTexture = new Image();
 const earthTexture = new Image();
 const moonTexture = new Image();
-sunTexture.src = "textures/sun.jpg"; // Reemplaza con la URL de tu textura
-earthTexture.src = "textures/earth.jpg"; // Reemplaza con la URL de tu textura
-moonTexture.src = "textures/moon.jpg"; // Reemplaza con la URL de tu textura
+sunTexture.src = "sun.jpg"; // Reemplaza con la URL de tu textura
+earthTexture.src = "earth.jpg"; // Reemplaza con la URL de tu textura
+moonTexture.src = "moon.jpg"; // Reemplaza con la URL de tu textura
 
 // Dibujar el sistema solar
 function drawSystem() {
