@@ -5,9 +5,9 @@ renderer.setSize(window.innerWidth, window.innerHeight);
 document.body.appendChild(renderer.domElement);
 
 const textureLoader = new THREE.TextureLoader();
-const sunTexture = textureLoader.load('textures/sun.jpg');
-const earthTexture = textureLoader.load('textures/earth.jpg');
-const moonTexture = textureLoader.load('textures/moon.jpg');
+const sunTexture = textureLoader.load('sun.jpg');
+const earthTexture = textureLoader.load('earth.jpg');
+const moonTexture = textureLoader.load('moon.jpg');
 
 const sunGeometry = new THREE.SphereGeometry(5, 32, 32);
 const earthGeometry = new THREE.SphereGeometry(2, 32, 32);
