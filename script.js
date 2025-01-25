@@ -2,37 +2,35 @@
 const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
 const renderer = new THREE.WebGLRenderer();
-
 renderer.setSize(window.innerWidth, window.innerHeight);
-renderer.outputEncoding = THREE.sRGBEncoding; // Corrección gamma
-renderer.toneMapping = THREE.ACESFilmicToneMapping;
-renderer.toneMappingExposure = 1.2; // Ajusta exposición
 document.body.appendChild(renderer.domElement);
 
-// Fondo oscuro
-scene.background = new THREE.Color(0x000000); // Fondo negro
+// Controlador de órbita
+const controls = new THREE.OrbitControls(camera, renderer.domElement);
 
-// Luz ambiental
-const ambientLight = new THREE.AmbientLight(0x404040, 0.3); // Luz tenue
+// Configuración de luces
+const ambientLight = new THREE.AmbientLight(0xffffff, 0.5); // Luz ambiental
 scene.add(ambientLight);
 
-// Luz puntual principal
-const light = new THREE.PointLight(0xffffff, 1); // Luz principal ajustada
-light.position.set(5, 5, 5);
-scene.add(light);
-
-// Luz secundaria
-const secondLight = new THREE.PointLight(0xffffff, 0.5); // Luz de relleno
-secondLight.position.set(-5, -5, -5);
-scene.add(secondLight);
+const pointLight = new THREE.PointLight(0xffffff, 1); // Luz puntual (sol)
+pointLight.position.set(5, 3, 5);
+scene.add(pointLight);
 
 // Cargar texturas
 const textureLoader = new THREE.TextureLoader();
 const earthTexture = textureLoader.load('earth.jpg');
+earthTexture.wrapS = THREE.RepeatWrapping;
+earthTexture.wrapT = THREE.RepeatWrapping;
+earthTexture.minFilter = THREE.LinearFilter;
+
 const earthBumpMap = textureLoader.load('bump.jpg');
 const cloudTexture = textureLoader.load('cloud.jpg');
+cloudTexture.wrapS = THREE.RepeatWrapping;
+cloudTexture.wrapT = THREE.RepeatWrapping;
+cloudTexture.minFilter = THREE.LinearFilter;
 
-// Material para la Tierra
+// Geometría y material de la Tierra
+const earthGeometry = new THREE.SphereGeometry(1, 64, 64); // Más segmentos para suavizar
 const earthMaterial = new THREE.MeshStandardMaterial({
   map: earthTexture,
   bumpMap: earthBumpMap,
@@ -40,57 +38,53 @@ const earthMaterial = new THREE.MeshStandardMaterial({
   roughness: 1,
   metalness: 0
 });
-
-// Geometría y malla de la Tierra
-const earthGeometry = new THREE.SphereGeometry(1, 32, 32);
 const earth = new THREE.Mesh(earthGeometry, earthMaterial);
 scene.add(earth);
 
-// Material para las nubes
-const cloudMaterial = new THREE.MeshStandardMaterial({
+// Nubes
+const cloudGeometry = new THREE.SphereGeometry(1.01, 64, 64); // Un poco más grande que la Tierra
+const cloudMaterial = new THREE.MeshPhongMaterial({
   map: cloudTexture,
   transparent: true,
   opacity: 0.5
 });
-
-// Geometría y malla de las nubes
-const cloudGeometry = new THREE.SphereGeometry(1.01, 32, 32);
 const clouds = new THREE.Mesh(cloudGeometry, cloudMaterial);
 scene.add(clouds);
 
-// Geometría, material y malla de la Luna
+// Geometría y material de la Luna
+const moonTexture = textureLoader.load('moon.jpg');
 const moonGeometry = new THREE.SphereGeometry(0.27, 32, 32);
 const moonMaterial = new THREE.MeshStandardMaterial({
-  color: 0xbababa,
-  emissive: 0x333333,
-  emissiveIntensity: 0.3
+  map: moonTexture,
+  roughness: 1,
+  metalness: 0
 });
 const moon = new THREE.Mesh(moonGeometry, moonMaterial);
+scene.add(moon);
 
-// Orbitar la Luna
-const moonOrbit = new THREE.Object3D();
-scene.add(moonOrbit);
-moonOrbit.add(moon);
+// Posicionar cámara
+camera.position.set(3, 2, 5);
 
-// Ajustar posiciones
-moon.position.set(2, 0, 0);
-camera.position.set(0, 2, 5);
-
-// Controles de la cámara
-const controls = new THREE.OrbitControls(camera, renderer.domElement);
-
-// Animación
-const clock = new THREE.Clock();
-
-function animate() {
+// Animación de la Tierra, nubes y la Luna
+const animate = () => {
   requestAnimationFrame(animate);
 
-  earth.rotation.y += 0.01;
-  clouds.rotation.y += 0.005;
-  moonOrbit.rotation.y = clock.getElapsedTime() * 0.5;
+  // Rotación de la Tierra
+  earth.rotation.y += 0.003;
+
+  // Rotación de las nubes
+  clouds.rotation.y += 0.002;
+
+  // Rotación de la Luna alrededor de la Tierra
+  const time = Date.now() * 0.001;
+  moon.position.set(
+    Math.cos(time) * 3, // Radio de 3
+    0,
+    Math.sin(time) * 3
+  );
 
   controls.update();
   renderer.render(scene, camera);
-}
+};
 
 animate();
