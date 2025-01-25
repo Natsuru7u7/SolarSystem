@@ -11,20 +11,15 @@ const light = new THREE.PointLight(0xffffff, 1.5);
 light.position.set(5, 5, 5);
 scene.add(light);
 
-// Cargar texturas para la Tierra y la Luna
-const textureLoader = new THREE.TextureLoader();
-const earthTexture = textureLoader.load('https://upload.wikimedia.org/wikipedia/commons/8/8f/Earthmap1000x500compac.jpg');
-const moonTexture = textureLoader.load('https://upload.wikimedia.org/wikipedia/commons/9/99/Color_Moon_LRO_June_2009.jpg');
-
 // Crear la Tierra
 const earthGeometry = new THREE.SphereGeometry(1, 32, 32);
-const earthMaterial = new THREE.MeshStandardMaterial({ map: earthTexture });
+const earthMaterial = new THREE.MeshStandardMaterial({ color: 0x2a7de1 }); // Azul para la Tierra
 const earth = new THREE.Mesh(earthGeometry, earthMaterial);
 scene.add(earth);
 
 // Crear la Luna
 const moonGeometry = new THREE.SphereGeometry(0.27, 32, 32);
-const moonMaterial = new THREE.MeshStandardMaterial({ map: moonTexture });
+const moonMaterial = new THREE.MeshStandardMaterial({ color: 0xbababa }); // Gris para la Luna
 const moon = new THREE.Mesh(moonGeometry, moonMaterial);
 scene.add(moon);
 
@@ -34,10 +29,10 @@ scene.add(moonOrbit);
 moonOrbit.add(moon);
 
 // Ajustar posiciones
-moon.position.set(2, 0, 0);
-camera.position.set(0, 2, 5);
+moon.position.set(2, 0, 0); // La Luna orbita a 2 unidades de la Tierra
+camera.position.set(0, 2, 5); // La cámara comienza mirando desde una perspectiva elevada
 
-// Control de la cámara
+// Controles de la cámara
 const controls = new THREE.OrbitControls(camera, renderer.domElement);
 
 // Animación
@@ -51,7 +46,7 @@ function animate() {
 
   // Rotación de la Luna alrededor de la Tierra
   const elapsedTime = clock.getElapsedTime();
-  moonOrbit.rotation.y = elapsedTime * 0.5;
+  moonOrbit.rotation.y = elapsedTime * 0.5; // Ajusta la velocidad de la órbita si es necesario
 
   controls.update();
   renderer.render(scene, camera);
