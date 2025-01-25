@@ -72,4 +72,31 @@ function animate() {
   renderer.render(scene, camera);
 }
 
+// Cargar texturas con TextureLoader
+const textureLoader = new THREE.TextureLoader();
+
+// Textura de la Tierra
+const earthColorTexture = textureLoader.load('earth.jpg'); // Mapa de color
+const earthMaterial = new THREE.MeshStandardMaterial({
+  map: earthColorTexture // Aplica la textura de color
+});
+
+// Crear la Tierra con textura
+const earthGeometry = new THREE.SphereGeometry(1, 32, 32);
+const earth = new THREE.Mesh(earthGeometry, earthMaterial);
+scene.add(earth);
+
+// Textura de la Luna
+const moonColorTexture = textureLoader.load('moon.jpg'); // Mapa de color
+const moonMaterial = new THREE.MeshStandardMaterial({
+  map: moonColorTexture // Aplica la textura de color
+});
+
+// Crear la Luna con textura
+const moonGeometry = new THREE.SphereGeometry(0.27, 32, 32);
+const moon = new THREE.Mesh(moonGeometry, moonMaterial);
+moonOrbit.add(moon);
+
+
+
 animate();
