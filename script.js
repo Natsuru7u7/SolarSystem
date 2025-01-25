@@ -6,20 +6,37 @@ const renderer = new THREE.WebGLRenderer();
 renderer.setSize(window.innerWidth, window.innerHeight);
 document.body.appendChild(renderer.domElement);
 
-// Luz
+// Luz ambiental para iluminar uniformemente toda la escena
+const ambientLight = new THREE.AmbientLight(0x404040, 0.5); // Luz blanca suave
+scene.add(ambientLight);
+
+// Luz puntual principal
 const light = new THREE.PointLight(0xffffff, 1.5);
 light.position.set(5, 5, 5);
 scene.add(light);
 
+// Luz adicional desde el lado opuesto para evitar sombras oscuras
+const secondLight = new THREE.PointLight(0xffffff, 1);
+secondLight.position.set(-5, -5, -5);
+scene.add(secondLight);
+
 // Crear la Tierra
 const earthGeometry = new THREE.SphereGeometry(1, 32, 32);
-const earthMaterial = new THREE.MeshStandardMaterial({ color: 0x2a7de1 }); // Azul para la Tierra
+const earthMaterial = new THREE.MeshStandardMaterial({ 
+  color: 0x2a7de1, 
+  emissive: 0x0a3d8f, // Emisión azul tenue
+  emissiveIntensity: 0.5 
+});
 const earth = new THREE.Mesh(earthGeometry, earthMaterial);
 scene.add(earth);
 
 // Crear la Luna
 const moonGeometry = new THREE.SphereGeometry(0.27, 32, 32);
-const moonMaterial = new THREE.MeshStandardMaterial({ color: 0xbababa }); // Gris para la Luna
+const moonMaterial = new THREE.MeshStandardMaterial({ 
+  color: 0xbababa, 
+  emissive: 0x333333, // Emisión gris tenue
+  emissiveIntensity: 0.3 
+});
 const moon = new THREE.Mesh(moonGeometry, moonMaterial);
 scene.add(moon);
 
@@ -47,6 +64,9 @@ function animate() {
   // Rotación de la Luna alrededor de la Tierra
   const elapsedTime = clock.getElapsedTime();
   moonOrbit.rotation.y = elapsedTime * 0.5; // Ajusta la velocidad de la órbita si es necesario
+
+  // La luz principal sigue la posición de la cámara para mejorar la iluminación
+  light.position.copy(camera.position);
 
   controls.update();
   renderer.render(scene, camera);
