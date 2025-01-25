@@ -22,9 +22,9 @@ scene.add(secondLight);
 
 // Cargar texturas
 const textureLoader = new THREE.TextureLoader();
-const earthTexture = textureLoader.load('./textures/earth_texture.jpg'); // Mapa de color
-const earthBumpMap = textureLoader.load('./textures/earth_bump.jpg'); // Mapa de relieve (opcional)
-const cloudTexture = textureLoader.load('./textures/earth_clouds.jpg'); // Mapa de nubes (opcional)
+const earthTexture = textureLoader.load('earth.jpg'); // Mapa de color
+const earthBumpMap = textureLoader.load('bump.jpg'); // Mapa de relieve (opcional)
+const cloudTexture = textureLoader.load('cloud.jpg'); // Mapa de nubes (opcional)
 
 // Material para la Tierra
 const earthMaterial = new THREE.MeshStandardMaterial({
