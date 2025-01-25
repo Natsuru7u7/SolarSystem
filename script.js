@@ -42,7 +42,7 @@ scene.add(earth);
 const cloudMaterial = new THREE.MeshStandardMaterial({
   map: cloudTexture,
   transparent: true, // Hace que el fondo sea transparente
-  opacity: 0.8      // Ajusta la opacidad de las nubes
+  opacity: 0.1      // Ajusta la opacidad de las nubes
 });
 
 // Geometría y malla de las nubes
