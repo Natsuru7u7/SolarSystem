@@ -20,25 +20,44 @@ const secondLight = new THREE.PointLight(0xffffff, 1);
 secondLight.position.set(-5, -5, -5);
 scene.add(secondLight);
 
-// Crear la Tierra
-const earthGeometry = new THREE.SphereGeometry(1, 32, 32);
-const earthMaterial = new THREE.MeshStandardMaterial({ 
-  color: 0x2a7de1, 
-  emissive: 0x0a3d8f, // Emisión azul tenue
-  emissiveIntensity: 0.5 
+// Cargar texturas
+const textureLoader = new THREE.TextureLoader();
+const earthTexture = textureLoader.load('./textures/earth_texture.jpg'); // Mapa de color
+const earthBumpMap = textureLoader.load('./textures/earth_bump.jpg'); // Mapa de relieve (opcional)
+const cloudTexture = textureLoader.load('./textures/earth_clouds.jpg'); // Mapa de nubes (opcional)
+
+// Material para la Tierra
+const earthMaterial = new THREE.MeshStandardMaterial({
+  map: earthTexture,      // Mapa de color
+  bumpMap: earthBumpMap,  // Mapa de relieve (opcional)
+  bumpScale: 0.05         // Escala del relieve
 });
+
+// Geometría y malla de la Tierra
+const earthGeometry = new THREE.SphereGeometry(1, 32, 32);
 const earth = new THREE.Mesh(earthGeometry, earthMaterial);
 scene.add(earth);
 
-// Crear la Luna
+// Material para las nubes
+const cloudMaterial = new THREE.MeshStandardMaterial({
+  map: cloudTexture,
+  transparent: true, // Hace que el fondo sea transparente
+  opacity: 0.8      // Ajusta la opacidad de las nubes
+});
+
+// Geometría y malla de las nubes
+const cloudGeometry = new THREE.SphereGeometry(1.01, 32, 32); // Ligeramente más grande que la Tierra
+const clouds = new THREE.Mesh(cloudGeometry, cloudMaterial);
+scene.add(clouds);
+
+// Geometría, material y malla de la Luna
 const moonGeometry = new THREE.SphereGeometry(0.27, 32, 32);
-const moonMaterial = new THREE.MeshStandardMaterial({ 
-  color: 0xbababa, 
+const moonMaterial = new THREE.MeshStandardMaterial({
+  color: 0xbababa,
   emissive: 0x333333, // Emisión gris tenue
-  emissiveIntensity: 0.3 
+  emissiveIntensity: 0.3
 });
 const moon = new THREE.Mesh(moonGeometry, moonMaterial);
-scene.add(moon);
 
 // Orbitar la Luna
 const moonOrbit = new THREE.Object3D();
@@ -61,9 +80,12 @@ function animate() {
   // Rotación de la Tierra
   earth.rotation.y += 0.01;
 
+  // Rotación de las nubes
+  clouds.rotation.y += 0.005; // Rotación lenta de las nubes
+
   // Rotación de la Luna alrededor de la Tierra
   const elapsedTime = clock.getElapsedTime();
-  moonOrbit.rotation.y = elapsedTime * 0.5; // Ajusta la velocidad de la órbita si es necesario
+  moonOrbit.rotation.y = elapsedTime * 0.5; // Ajusta la velocidad de la órbita
 
   // La luz principal sigue la posición de la cámara para mejorar la iluminación
   light.position.copy(camera.position);
@@ -71,32 +93,5 @@ function animate() {
   controls.update();
   renderer.render(scene, camera);
 }
-
-// Cargar texturas con TextureLoader
-const textureLoader = new THREE.TextureLoader();
-
-// Textura de la Tierra
-const earthColorTexture = textureLoader.load('earth.jpg'); // Mapa de color
-const earthMaterial = new THREE.MeshStandardMaterial({
-  map: earthColorTexture // Aplica la textura de color
-});
-
-// Crear la Tierra con textura
-const earthGeometry = new THREE.SphereGeometry(1, 32, 32);
-const earth = new THREE.Mesh(earthGeometry, earthMaterial);
-scene.add(earth);
-
-// Textura de la Luna
-const moonColorTexture = textureLoader.load('moon.jpg'); // Mapa de color
-const moonMaterial = new THREE.MeshStandardMaterial({
-  map: moonColorTexture // Aplica la textura de color
-});
-
-// Crear la Luna con textura
-const moonGeometry = new THREE.SphereGeometry(0.27, 32, 32);
-const moon = new THREE.Mesh(moonGeometry, moonMaterial);
-moonOrbit.add(moon);
-
-
 
 animate();
