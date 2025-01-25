@@ -1,75 +1,60 @@
+// Escena, cámara y renderizador
 const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
 const renderer = new THREE.WebGLRenderer();
+
 renderer.setSize(window.innerWidth, window.innerHeight);
 document.body.appendChild(renderer.domElement);
 
+// Luz
+const light = new THREE.PointLight(0xffffff, 1.5);
+light.position.set(5, 5, 5);
+scene.add(light);
+
+// Cargar texturas para la Tierra y la Luna
 const textureLoader = new THREE.TextureLoader();
-const sunTexture = textureLoader.load('sun.jpg');
-const earthTexture = textureLoader.load('earth.jpg');
-const moonTexture = textureLoader.load('moon.jpg');
+const earthTexture = textureLoader.load('https://upload.wikimedia.org/wikipedia/commons/8/8f/Earthmap1000x500compac.jpg');
+const moonTexture = textureLoader.load('https://upload.wikimedia.org/wikipedia/commons/9/99/Color_Moon_LRO_June_2009.jpg');
 
-const sunGeometry = new THREE.SphereGeometry(5, 32, 32);
-const earthGeometry = new THREE.SphereGeometry(2, 32, 32);
-const moonGeometry = new THREE.SphereGeometry(0.5, 32, 32);
-
-const sunMaterial = new THREE.MeshBasicMaterial({ map: sunTexture });
-const earthMaterial = new THREE.MeshPhongMaterial({ map: earthTexture });
-const moonMaterial = new THREE.MeshPhongMaterial({ map: moonTexture });
-
-const sun = new THREE.Mesh(sunGeometry, sunMaterial);
-scene.add(sun);
-
+// Crear la Tierra
+const earthGeometry = new THREE.SphereGeometry(1, 32, 32);
+const earthMaterial = new THREE.MeshStandardMaterial({ map: earthTexture });
 const earth = new THREE.Mesh(earthGeometry, earthMaterial);
 scene.add(earth);
 
+// Crear la Luna
+const moonGeometry = new THREE.SphereGeometry(0.27, 32, 32);
+const moonMaterial = new THREE.MeshStandardMaterial({ map: moonTexture });
 const moon = new THREE.Mesh(moonGeometry, moonMaterial);
 scene.add(moon);
 
-const light = new THREE.PointLight(0xffffff, 1, 100);
-light.position.set(0, 0, 0);
-scene.add(light);
+// Orbitar la Luna
+const moonOrbit = new THREE.Object3D();
+scene.add(moonOrbit);
+moonOrbit.add(moon);
 
-const ambientLight = new THREE.AmbientLight(0x404040);
-scene.add(ambientLight);
+// Ajustar posiciones
+moon.position.set(2, 0, 0);
+camera.position.set(0, 2, 5);
 
-earth.position.set(10, 0, 0);
-moon.position.set(12, 0, 0);
+// Control de la cámara
+const controls = new THREE.OrbitControls(camera, renderer.domElement);
 
-let earthAngle = 0;
-let moonAngle = 0;
+// Animación
+const clock = new THREE.Clock();
 
 function animate() {
   requestAnimationFrame(animate);
 
-  sun.rotation.y += 0.001;
+  // Rotación de la Tierra
   earth.rotation.y += 0.01;
-  moon.rotation.y += 0.02;
 
-  earthAngle += 0.01;
-  moonAngle += 0.05;
+  // Rotación de la Luna alrededor de la Tierra
+  const elapsedTime = clock.getElapsedTime();
+  moonOrbit.rotation.y = elapsedTime * 0.5;
 
-  earth.position.set(
-    10 * Math.cos(earthAngle),
-    0,
-    10 * Math.sin(earthAngle)
-  );
-
-  moon.position.set(
-    earth.position.x + 2 * Math.cos(moonAngle),
-    0,
-    earth.position.z + 2 * Math.sin(moonAngle)
-  );
-
+  controls.update();
   renderer.render(scene, camera);
 }
-
-camera.position.z = 20;
-
-window.addEventListener("resize", () => {
-  camera.aspect = window.innerWidth / window.innerHeight;
-  camera.updateProjectionMatrix();
-  renderer.setSize(window.innerWidth, window.innerHeight);
-});
 
 animate();
