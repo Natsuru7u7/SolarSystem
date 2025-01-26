@@ -13,10 +13,26 @@ const controls = new THREE.OrbitControls(camera, renderer.domElement);
 const ambientLight = new THREE.AmbientLight(0xffffff, 0.3); // Luz ambiental tenue
 scene.add(ambientLight);
 
-const pointLight = new THREE.PointLight(0xffffff, 1); // Luz puntual (sol)
-pointLight.position.set(5, 3, 5);
-pointLight.castShadow = true; // Activar sombras desde la luz puntual
-scene.add(pointLight);
+// Añadir el Sol
+const sunGeometry = new THREE.SphereGeometry(2, 32, 32); // Esfera para el Sol
+const sunMaterial = new THREE.MeshBasicMaterial({
+  color: 0xffd700, // Amarillo dorado
+  emissive: 0xffaa00, // Luz emitida para simular el brillo
+  emissiveIntensity: 1
+});
+const sun = new THREE.Mesh(sunGeometry, sunMaterial);
+sun.position.set(10, 0, -15); // Posición del Sol lejos del sistema Tierra-Luna
+scene.add(sun);
+
+// Luz direccional del Sol
+const sunLight = new THREE.DirectionalLight(0xffffff, 1.5); // Luz brillante
+sunLight.position.copy(sun.position); // La luz viene desde la posición del Sol
+sunLight.castShadow = true; // Activar sombras
+sunLight.shadow.mapSize.width = 2048; // Resolución de sombras
+sunLight.shadow.mapSize.height = 2048;
+sunLight.shadow.camera.near = 0.5;
+sunLight.shadow.camera.far = 50;
+scene.add(sunLight);
 
 // Cargar texturas
 const textureLoader = new THREE.TextureLoader();
