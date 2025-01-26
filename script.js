@@ -3,35 +3,31 @@ const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
 const renderer = new THREE.WebGLRenderer({ antialias: true });
 renderer.setSize(window.innerWidth, window.innerHeight);
-renderer.shadowMap.enabled = true; // Habilitar sombras
+renderer.shadowMap.enabled = true;
 document.body.appendChild(renderer.domElement);
 
 // Controlador de órbita
 const controls = new THREE.OrbitControls(camera, renderer.domElement);
 
 // Configuración de luces
-const ambientLight = new THREE.AmbientLight(0xffffff, 0.3); // Luz ambiental tenue
+const ambientLight = new THREE.AmbientLight(0xffffff, 0.3);
 scene.add(ambientLight);
 
-// Añadir el Sol
-const sunGeometry = new THREE.SphereGeometry(2, 32, 32); // Esfera para el Sol
+// Sol
+const sunGeometry = new THREE.SphereGeometry(2, 32, 32);
 const sunMaterial = new THREE.MeshBasicMaterial({
-  color: 0xffd700, // Amarillo dorado
-  emissive: 0xffaa00, // Luz emitida para simular el brillo
+  color: 0xffd700,
+  emissive: 0xffaa00,
   emissiveIntensity: 1
 });
 const sun = new THREE.Mesh(sunGeometry, sunMaterial);
-sun.position.set(10, 0, -15); // Posición del Sol lejos del sistema Tierra-Luna
+sun.position.set(0, 0, 0); // Sol en el origen
 scene.add(sun);
 
 // Luz direccional del Sol
-const sunLight = new THREE.DirectionalLight(0xffffff, 1.5); // Luz brillante
-sunLight.position.copy(sun.position); // La luz viene desde la posición del Sol
-sunLight.castShadow = true; // Activar sombras
-sunLight.shadow.mapSize.width = 2048; // Resolución de sombras
-sunLight.shadow.mapSize.height = 2048;
-sunLight.shadow.camera.near = 0.5;
-sunLight.shadow.camera.far = 50;
+const sunLight = new THREE.DirectionalLight(0xffffff, 1.5);
+sunLight.position.copy(sun.position);
+sunLight.castShadow = true;
 scene.add(sunLight);
 
 // Cargar texturas
@@ -41,7 +37,7 @@ const earthBumpMap = textureLoader.load('bump.jpg');
 const cloudTexture = textureLoader.load('cloud.jpg');
 const moonTexture = textureLoader.load('moon.jpg');
 
-// Geometría y material de la Tierra
+// Tierra
 const earthGeometry = new THREE.SphereGeometry(1, 64, 64);
 const earthMaterial = new THREE.MeshStandardMaterial({
   map: earthTexture,
@@ -55,7 +51,7 @@ earth.castShadow = true;
 earth.receiveShadow = true;
 scene.add(earth);
 
-// Nubes
+// Nubes de la Tierra
 const cloudGeometry = new THREE.SphereGeometry(1.01, 64, 64);
 const cloudMaterial = new THREE.MeshPhongMaterial({
   map: cloudTexture,
@@ -65,7 +61,7 @@ const cloudMaterial = new THREE.MeshPhongMaterial({
 const clouds = new THREE.Mesh(cloudGeometry, cloudMaterial);
 scene.add(clouds);
 
-// Geometría y material de la Luna
+// Luna
 const moonGeometry = new THREE.SphereGeometry(0.27, 32, 32);
 const moonMaterial = new THREE.MeshStandardMaterial({
   map: moonTexture,
@@ -77,44 +73,64 @@ moon.castShadow = true;
 moon.receiveShadow = true;
 scene.add(moon);
 
-// Configurar cámara
-camera.position.set(5, 3, 8);
+// Líneas orbitales
+const createOrbitLine = (radius, segments = 128) => {
+  const orbitGeometry = new THREE.BufferGeometry();
+  const positions = [];
+  for (let i = 0; i <= segments; i++) {
+    const angle = (i / segments) * Math.PI * 2;
+    positions.push(radius * Math.cos(angle), 0, radius * Math.sin(angle));
+  }
+  orbitGeometry.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+  const orbitMaterial = new THREE.LineBasicMaterial({ color: 0xffffff });
+  return new THREE.Line(orbitGeometry, orbitMaterial);
+};
 
-// Parámetros del sistema Tierra-Luna
-const moonOrbitRadius = 3.84; // Radio promedio en escala simplificada
-const moonInclination = 5 * (Math.PI / 180); // Inclinación orbital en radianes
-const earthMass = 5.972; // Masa de la Tierra (en escala relativa)
-const moonMass = 0.073; // Masa de la Luna (en escala relativa)
+// Añadir órbitas
+const earthOrbit = createOrbitLine(10); // Orbita de la Tierra alrededor del Sol
+scene.add(earthOrbit);
 
-// Cálculo del baricentro
-const barycenterDistance = moonOrbitRadius * (moonMass / (earthMass + moonMass));
+const moonOrbit = createOrbitLine(3.84); // Orbita de la Luna alrededor de la Tierra
+scene.add(moonOrbit);
+
+// Cámara
+camera.position.set(15, 10, 25);
+
+// Parámetros del sistema
+const sunMass = 1.989; // Masa del Sol en escala relativa
+const earthOrbitRadius = 10; // Distancia media Tierra-Sol
+const earthOrbitEccentricity = 0.0167; // Excentricidad orbital
+const moonOrbitRadius = 3.84; // Radio de la Luna alrededor de la Tierra
 
 // Animación
 const animate = () => {
   requestAnimationFrame(animate);
 
-  const time = Date.now() * 0.0001; // Tiempo escalado para la órbita
+  const time = Date.now() * 0.00005; // Tiempo escalado para movimiento orbital
 
-  // Posición de la Luna (órbita inclinada y elíptica)
-  const moonX = Math.cos(time) * moonOrbitRadius;
-  const moonZ = Math.sin(time) * moonOrbitRadius * 0.98; // Simulación de excentricidad
-  const moonY = Math.sin(time) * Math.sin(moonInclination);
+  // Movimiento orbital de la Tierra (Kepleriano)
+  const theta = time * Math.PI * 2; // Ángulo orbital
+  const earthX = earthOrbitRadius * (1 - earthOrbitEccentricity ** 2) / (1 + earthOrbitEccentricity * Math.cos(theta));
+  earth.position.set(
+    earthX * Math.cos(theta),
+    0,
+    earthX * Math.sin(theta)
+  );
 
-  // Posicionar la Luna
-  moon.position.set(moonX, moonY, moonZ);
+  // Movimiento orbital de la Luna alrededor de la Tierra
+  const moonTheta = time * 12; // Más rápido que la Tierra
+  moon.position.set(
+    earth.position.x + moonOrbitRadius * Math.cos(moonTheta),
+    0,
+    earth.position.z + moonOrbitRadius * Math.sin(moonTheta)
+  );
 
-  // Rotación sincrónica de la Luna
-  moon.rotation.y = time;
-
-  // Posicionar la Tierra alrededor del baricentro
-  const earthX = -moonX * (moonMass / earthMass);
-  const earthZ = -moonZ * (moonMass / earthMass);
-  earth.position.set(earthX, 0, earthZ);
-  clouds.position.copy(earth.position);
-
-  // Rotación de la Tierra y las nubes
+  // Rotación de la Tierra y nubes
   earth.rotation.y += 0.003;
   clouds.rotation.y += 0.002;
+
+  // Sincronizar nubes con la Tierra
+  clouds.position.copy(earth.position);
 
   controls.update();
   renderer.render(scene, camera);
