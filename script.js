@@ -46,7 +46,7 @@ const cloudGeometry = new THREE.SphereGeometry(1.01, 64, 64); // Un poco más gr
 const cloudMaterial = new THREE.MeshPhongMaterial({
   map: cloudTexture,
   transparent: true,
-  opacity: 0.5
+  opacity: 0.05
 });
 const clouds = new THREE.Mesh(cloudGeometry, cloudMaterial);
 scene.add(clouds);
