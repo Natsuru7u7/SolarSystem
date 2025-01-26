@@ -1,4 +1,4 @@
-añadelo aqui: // Escena, cámara y renderizador
+// Escena, cámara y renderizador
 const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
 const renderer = new THREE.WebGLRenderer({ antialias: true });
@@ -93,43 +93,55 @@ scene.add(earthOrbit);
 const moonOrbit = createOrbitLine(3.84); // Orbita de la Luna alrededor de la Tierra
 scene.add(moonOrbit);
 
+// Parámetros del sistema solar
+const G = 1; // Constante gravitacional simplificada
+const sunMass = 1.989; // Masa del Sol relativa
+const earthMass = 0.000003; // Masa de la Tierra relativa
+const semiMajorAxis = 10; // Semieje mayor de la órbita
+const eccentricity = 0.0167; // Excentricidad de la órbita
+
+let theta = 0; // Anomalía verdadera inicial
+const dt = 0.01; // Incremento de tiempo
+
+// Actualización de la posición de la Tierra
+const updateEarthPosition = () => {
+  // Distancia Tierra-Sol en la órbita elíptica
+  const r = semiMajorAxis * (1 - eccentricity ** 2) / (1 + eccentricity * Math.cos(theta));
+
+  // Posición de la Tierra
+  earth.position.set(
+    r * Math.cos(theta), // Coordenada X
+    0,
+    r * Math.sin(theta) // Coordenada Z
+  );
+
+  // Velocidad angular ajustada (ley de áreas iguales)
+  const angularVelocity = Math.sqrt(G * sunMass / r ** 3);
+  theta += angularVelocity * dt;
+};
+
 // Cámara
 camera.position.set(15, 10, 25);
-
-// Parámetros del sistema
-const sunMass = 1.989; // Masa del Sol en escala relativa
-const earthOrbitRadius = 10; // Distancia media Tierra-Sol
-const earthOrbitEccentricity = 0.0167; // Excentricidad orbital
-const moonOrbitRadius = 3.84; // Radio de la Luna alrededor de la Tierra
 
 // Animación
 const animate = () => {
   requestAnimationFrame(animate);
 
-  const time = Date.now() * 0.00005; // Tiempo escalado para movimiento orbital
-
-  // Movimiento orbital de la Tierra (Kepleriano)
-  const theta = time * Math.PI * 2; // Ángulo orbital
-  const earthX = earthOrbitRadius * (1 - earthOrbitEccentricity ** 2) / (1 + earthOrbitEccentricity * Math.cos(theta));
-  earth.position.set(
-    earthX * Math.cos(theta),
-    0,
-    earthX * Math.sin(theta)
-  );
+  updateEarthPosition(); // Actualiza la posición orbital de la Tierra
 
   // Movimiento orbital de la Luna alrededor de la Tierra
-  const moonTheta = time * 12; // Más rápido que la Tierra
+  const moonTheta = theta * 12; // Más rápido que la Tierra
   moon.position.set(
-    earth.position.x + moonOrbitRadius * Math.cos(moonTheta),
+    earth.position.x + 3.84 * Math.cos(moonTheta),
     0,
-    earth.position.z + moonOrbitRadius * Math.sin(moonTheta)
+    earth.position.z + 3.84 * Math.sin(moonTheta)
   );
 
-  // Rotación de la Tierra y nubes
+  // Rotación de la Tierra y movimiento de nubes
   earth.rotation.y += 0.003;
   clouds.rotation.y += 0.002;
 
-  // Sincronizar nubes con la Tierra
+  // Sincronizar las nubes con la Tierra
   clouds.position.copy(earth.position);
 
   controls.update();
